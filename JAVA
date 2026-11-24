@@ -1,0 +1,174 @@
+/* script.js: all the JavaScript for the site in one file.
+   Every section checks that its elements exist, so the same file is safe on all three pages.
+   Link it at the bottom of each page: <script src="script.js"></script>
+   (If you use this file, delete the matching inline <script> blocks so nothing runs twice.) */
+
+// ======================================================================
+// 1. BACKGROUND LOOP (every page): cross-fades the CSS classes .bg-1 to .bg-5, with a Pause/Play button
+// ======================================================================
+(function () {
+  var COUNT = 5, INTERVAL = 7000;
+  var bg = document.querySelector('.bg');
+  var layers = bg ? bg.querySelectorAll('.bg-layer') : [];
+  var btn = document.getElementById('bg-toggle');
+  if (!bg || layers.length < 2 || !btn) return;
+
+  var index = 0, front = 0, timer = null;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  layers[0].className = 'bg-layer bg-1 is-visible';
+
+  function advance() {
+    index = (index + 1) % COUNT;
+    var back = 1 - front;
+    layers[back].className = 'bg-layer bg-' + (index + 1);
+    void layers[back].offsetWidth;                      // restart the fade
+    layers[back].classList.add('is-visible');
+    layers[front].classList.remove('is-visible');
+    front = back;
+  }
+  function start() { if (!timer) timer = setInterval(advance, INTERVAL); btn.textContent = 'Pause background'; }
+  function stop()  { clearInterval(timer); timer = null; btn.textContent = 'Play background'; }
+
+  btn.addEventListener('click', function () { timer ? stop() : start(); });
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden && timer) { clearInterval(timer); timer = null; btn.dataset.resume = '1'; }
+    else if (!document.hidden && btn.dataset.resume) { delete btn.dataset.resume; start(); }
+  });
+
+  if (reduce) { stop(); } else { start(); }
+})();
+
+// ======================================================================
+// 2. PHOTO SLIDESHOW (Home page): Previous / Next buttons show one photo at a time
+// ======================================================================
+(function(){
+  document.querySelectorAll('[data-gallery]').forEach(function(g){
+    var sc=g.querySelector('[data-scroller]'),prev=g.querySelector('[data-prev]'),next=g.querySelector('[data-next]'),st=g.querySelector('[data-status]');
+    var slides=Array.prototype.slice.call(sc.querySelectorAll('.slide'));
+    var idx=0;
+    g.classList.add('is-slideshow');           // one photo at a time (without JS they all stay visible)
+    sc.removeAttribute('tabindex');
+    function render(){
+      slides.forEach(function(s,i){ s.hidden = (i!==idx); });
+      st.textContent='Photo '+(idx+1)+' of '+slides.length;
+    }
+    function go(dir){ idx=(idx+dir+slides.length)%slides.length; render(); }
+    prev.addEventListener('click',function(){go(-1);});
+    next.addEventListener('click',function(){go(1);});
+    render();
+  });
+})();
+
+// ======================================================================
+// 3. PHOTO POP-UP (Home page): click a photo to enlarge it, arrow keys and Esc work
+// ======================================================================
+(function(){
+  var dlg=document.getElementById('lightbox'),img=document.getElementById('lb-img'),cap=document.getElementById('lb-caption');
+  var list=[],idx=0;
+  if (!dlg) return;   // only the Home page has the pop-up
+  function show(i){
+    idx=(i+list.length)%list.length;
+    var src=list[idx];
+    img.src=src.src; img.alt=src.alt; cap.textContent=src.closest('figure').querySelector('figcaption').textContent;
+  }
+  document.querySelectorAll('[data-gallery]').forEach(function(g){
+    var imgs=Array.prototype.slice.call(g.querySelectorAll('.slide img'));
+    g.querySelectorAll('.thumb').forEach(function(b,i){
+      b.addEventListener('click',function(){list=imgs;show(i);dlg.showModal();});
+    });
+  });
+  document.getElementById('lb-prev').addEventListener('click',function(){show(idx-1);});
+  document.getElementById('lb-next').addEventListener('click',function(){show(idx+1);});
+  document.getElementById('lb-close').addEventListener('click',function(){dlg.close();});
+  dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.close();});
+  dlg.addEventListener('keydown',function(e){
+    if(e.key==='ArrowLeft'){show(idx-1);} else if(e.key==='ArrowRight'){show(idx+1);}
+  });
+})();
+
+// ======================================================================
+// 4. CONTACT FORM (About page): accessible validation, error summary, and character counter
+// ======================================================================
+(function () {
+        var form = document.getElementById('contact-form');
+        if (!form) return;   // only the About page has the form
+        var summary = document.getElementById('error-summary');
+        var list = document.getElementById('error-list');
+        var success = document.getElementById('success');
+
+        // Character counter: updates visibly on every keystroke, announces to screen readers only near the limit.
+        var msg = document.getElementById('message');
+        var count = document.getElementById('message-count');
+        var live = document.getElementById('message-live');
+        var MAX = 500, lastNote = null;
+        function updateCount() {
+            var used = msg.value.length, left = MAX - used;
+            count.textContent = used + ' of ' + MAX + ' characters';
+            var note = left === 0 ? 'Character limit reached.' : (left <= 20 && left % 10 === 0) ? left + ' characters left.' : (left === 50 ? '50 characters left.' : '');
+            if (note && note !== lastNote) { live.textContent = note; }
+            lastNote = note || null;
+        }
+        msg.addEventListener('input', updateCount);
+        form.addEventListener('reset', function () { setTimeout(updateCount, 0); });
+        updateCount();
+
+        function setError(id, msg) {
+            var field = document.getElementById(id);
+            var out = document.getElementById(id + '-error');
+            if (msg) {
+                out.textContent = msg; out.hidden = false;
+                field.setAttribute('aria-invalid', 'true');
+            } else {
+                out.textContent = ''; out.hidden = true;
+                field.removeAttribute('aria-invalid');
+            }
+        }
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            success.hidden = true;
+            var errors = [];
+            var name = document.getElementById('name').value.trim();
+            var email = document.getElementById('email').value.trim();
+            var message = document.getElementById('message').value.trim();
+            var topic = form.querySelector('input[name="topic"]:checked');
+
+            var nameMsg = name ? '' : 'Enter your name.';
+            var emailMsg = !email ? 'Enter your email address.'
+                : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? 'Enter an email address like name@example.com.' : '';
+            var messageMsg = message ? '' : 'Enter a message.';
+            var topicMsg = topic ? '' : 'Choose what your message is about.';
+
+            setError('name', nameMsg);
+            setError('email', emailMsg);
+            setError('message', messageMsg);
+            var topicOut = document.getElementById('topic-error');
+            topicOut.textContent = topicMsg; topicOut.hidden = !topicMsg;
+            var group = document.getElementById('topic-group');
+            if (topicMsg) group.setAttribute('aria-invalid', 'true'); else group.removeAttribute('aria-invalid');
+
+            if (nameMsg) errors.push(['name', nameMsg]);
+            if (emailMsg) errors.push(['email', emailMsg]);
+            if (topicMsg) errors.push(['topic-hobbies', topicMsg]);
+            if (messageMsg) errors.push(['message', messageMsg]);
+
+            list.innerHTML = '';
+            if (errors.length) {
+                errors.forEach(function (err) {
+                    var li = document.createElement('li');
+                    var a = document.createElement('a');
+                    a.href = '#' + err[0]; a.textContent = err[1];
+                    a.addEventListener('click', function (ev) { ev.preventDefault(); document.getElementById(err[0]).focus(); });
+                    li.appendChild(a); list.appendChild(li);
+                });
+                summary.hidden = false;
+                summary.focus();
+                return;
+            }
+            summary.hidden = true;
+            form.reset();
+            success.hidden = false;
+            success.focus();
+        });
+    })();

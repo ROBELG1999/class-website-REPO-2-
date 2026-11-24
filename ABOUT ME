@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#000000">
+    <meta name="description" content="About Robel, and a form to get in touch.">
+    <title>Robel | About and Contact</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%8E%A8%3C/text%3E%3C/svg%3E">
+    <link href="https://fonts.googleapis.com/css2?family=Eater&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="bg" aria-hidden="true"><div class="bg-layer"></div><div class="bg-layer"></div></div>
+<a class="skip-link" href="#main">Skip to main content</a>
+    <div class="page">
+        <header class="page-header">
+            <div>
+                <h1>About Me</h1>
+                <p>And how to reach me</p>
+            </div>
+            <nav aria-label="Main">
+                <a href="index.html">Home</a>
+                <a href="about.html" aria-current="page">About</a>
+                <a href="exercises.html">Exercises</a>
+            </nav>
+        </header>
+
+        <main id="main">
+            <section aria-labelledby="about-heading">
+                <h2 id="about-heading">Hi, I'm Robel</h2>
+                <p>This site is where I share the things I enjoy. It started as a class project about accessibility and design, and it grew into a small gallery of the street art and manga I like looking at.</p>
+            </section>
+
+            <section aria-labelledby="into-heading">
+                <h2 id="into-heading">What I'm into</h2>
+                <div class="about-grid">
+                    <article class="about-card">
+                        <h3>Graffiti and street art</h3>
+                        <p>I like spotting pixel-art mosaics, stencils, and big painted walls, and noticing how each piece fits the building around it.</p>
+                    </article>
+                    <article class="about-card">
+                        <h3>Comics and manga</h3>
+                        <p>I'm drawn to bold black-and-white linework and dark, eerie stories. The gallery on the Home page has a few panels I keep coming back to.</p>
+                    </article>
+                    <article class="about-card">
+                        <h3>Games and music</h3>
+                        <p>Playing video games and listening to music are how I relax and reset after a long day.</p>
+                    </article>
+                </div>
+            </section>
+
+            <section aria-labelledby="contact-heading">
+                <h2 id="contact-heading">Contact me</h2>
+                <p>All fields are required.</p>
+
+                <div id="error-summary" class="error-summary" role="alert" tabindex="-1" hidden>
+                    <h2>Please fix these problems</h2>
+                    <ul id="error-list"></ul>
+                </div>
+                <div id="success" class="success" role="status" tabindex="-1" hidden>
+                    <strong>Thanks, your message was sent.</strong>
+                </div>
+
+                <form id="contact-form" action="#" method="post" novalidate>
+                    <fieldset>
+                        <legend>Your details</legend>
+                        <div class="field">
+                            <label for="name">Name</label>
+                            <input type="text" id="name" name="name" autocomplete="name" required aria-describedby="name-error">
+                            <p class="error-msg" id="name-error" hidden></p>
+                        </div>
+                        <div class="field">
+                            <label for="email">Email address</label>
+                            <p class="hint" id="email-hint">Example: name@example.com</p>
+                            <input type="email" id="email" name="email" autocomplete="email" required aria-describedby="email-hint email-error">
+                            <p class="error-msg" id="email-error" hidden></p>
+                        </div>
+                    </fieldset>
+
+                    <fieldset id="topic-group" aria-describedby="topic-error">
+                        <legend>What is your message about?</legend>
+                        <div class="radio"><input type="radio" id="topic-hobbies" name="topic" value="hobbies"><label for="topic-hobbies">My hobbies</label></div>
+                        <div class="radio"><input type="radio" id="topic-collab" name="topic" value="collab"><label for="topic-collab">Working together</label></div>
+                        <div class="radio"><input type="radio" id="topic-other" name="topic" value="other"><label for="topic-other">Something else</label></div>
+                        <p class="error-msg" id="topic-error" hidden></p>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Your message</legend>
+                        <div class="field">
+                            <label for="message">Message</label>
+                            <textarea id="message" name="message" maxlength="500" required aria-describedby="message-count message-error"></textarea>
+                            <p class="hint char-count" id="message-count">0 of 500 characters</p>
+                            <p class="sr-only" id="message-live" aria-live="polite"></p>
+                            <p class="error-msg" id="message-error" hidden></p>
+                        </div>
+                    </fieldset>
+
+                    <button type="submit">Send message</button>
+                </form>
+            </section>
+        </main>
+        <footer class="page-footer">
+            <p>&copy; 2026 Robel. Dark mode only, built for keyboard and screen reader use.</p>
+        </footer>
+    </div>
+
+    <script>
+    (function () {
+        var form = document.getElementById('contact-form');
+        var summary = document.getElementById('error-summary');
+        var list = document.getElementById('error-list');
+        var success = document.getElementById('success');
+
+        // Character counter: updates visibly on every keystroke, announces to screen readers only near the limit.
+        var msg = document.getElementById('message');
+        var count = document.getElementById('message-count');
+        var live = document.getElementById('message-live');
+        var MAX = 500, lastNote = null;
+        function updateCount() {
+            var used = msg.value.length, left = MAX - used;
+            count.textContent = used + ' of ' + MAX + ' characters';
+            var note = left === 0 ? 'Character limit reached.' : (left <= 20 && left % 10 === 0) ? left + ' characters left.' : (left === 50 ? '50 characters left.' : '');
+            if (note && note !== lastNote) { live.textContent = note; }
+            lastNote = note || null;
+        }
+        msg.addEventListener('input', updateCount);
+        form.addEventListener('reset', function () { setTimeout(updateCount, 0); });
+        updateCount();
+
+        function setError(id, msg) {
+            var field = document.getElementById(id);
+            var out = document.getElementById(id + '-error');
+            if (msg) {
+                out.textContent = msg; out.hidden = false;
+                field.setAttribute('aria-invalid', 'true');
+            } else {
+                out.textContent = ''; out.hidden = true;
+                field.removeAttribute('aria-invalid');
+            }
+        }
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            success.hidden = true;
+            var errors = [];
+            var name = document.getElementById('name').value.trim();
+            var email = document.getElementById('email').value.trim();
+            var message = document.getElementById('message').value.trim();
+            var topic = form.querySelector('input[name="topic"]:checked');
+
+            var nameMsg = name ? '' : 'Enter your name.';
+            var emailMsg = !email ? 'Enter your email address.'
+                : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? 'Enter an email address like name@example.com.' : '';
+            var messageMsg = message ? '' : 'Enter a message.';
+            var topicMsg = topic ? '' : 'Choose what your message is about.';
+
+            setError('name', nameMsg);
+            setError('email', emailMsg);
+            setError('message', messageMsg);
+            var topicOut = document.getElementById('topic-error');
+            topicOut.textContent = topicMsg; topicOut.hidden = !topicMsg;
+            var group = document.getElementById('topic-group');
+            if (topicMsg) group.setAttribute('aria-invalid', 'true'); else group.removeAttribute('aria-invalid');
+
+            if (nameMsg) errors.push(['name', nameMsg]);
+            if (emailMsg) errors.push(['email', emailMsg]);
+            if (topicMsg) errors.push(['topic-hobbies', topicMsg]);
+            if (messageMsg) errors.push(['message', messageMsg]);
+
+            list.innerHTML = '';
+            if (errors.length) {
+                errors.forEach(function (err) {
+                    var li = document.createElement('li');
+                    var a = document.createElement('a');
+                    a.href = '#' + err[0]; a.textContent = err[1];
+                    a.addEventListener('click', function (ev) { ev.preventDefault(); document.getElementById(err[0]).focus(); });
+                    li.appendChild(a); list.appendChild(li);
+                });
+                summary.hidden = false;
+                summary.focus();
+                return;
+            }
+            summary.hidden = true;
+            form.reset();
+            success.hidden = false;
+            success.focus();
+        });
+    })();
+    </script>
+<button type="button" id="bg-toggle" class="bg-toggle">Pause background</button>
+<script>
+/* Looping background: swaps the CSS classes .bg-1 to .bg-5 on two stacked layers and cross-fades them. */
+(function () {
+  var COUNT = 5, INTERVAL = 7000;
+  var bg = document.querySelector('.bg');
+  var layers = bg ? bg.querySelectorAll('.bg-layer') : [];
+  var btn = document.getElementById('bg-toggle');
+  if (!bg || layers.length < 2 || !btn) return;
+
+  var index = 0, front = 0, timer = null;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  layers[0].className = 'bg-layer bg-1 is-visible';
+
+  function advance() {
+    index = (index + 1) % COUNT;
+    var back = 1 - front;
+    layers[back].className = 'bg-layer bg-' + (index + 1);
+    void layers[back].offsetWidth;                      // restart the fade
+    layers[back].classList.add('is-visible');
+    layers[front].classList.remove('is-visible');
+    front = back;
+  }
+  function start() { if (!timer) timer = setInterval(advance, INTERVAL); btn.textContent = 'Pause background'; }
+  function stop()  { clearInterval(timer); timer = null; btn.textContent = 'Play background'; }
+
+  btn.addEventListener('click', function () { timer ? stop() : start(); });
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden && timer) { clearInterval(timer); timer = null; btn.dataset.resume = '1'; }
+    else if (!document.hidden && btn.dataset.resume) { delete btn.dataset.resume; start(); }
+  });
+
+  if (reduce) { stop(); } else { start(); }
+})();
+</script>
+</body>
+</html>
