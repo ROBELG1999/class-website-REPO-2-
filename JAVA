@@ -1,4 +1,4 @@
-/* script.js: all the JavaScript for the site in one file.
+//* script.js: all the JavaScript for the site in one file.
    Every section checks that its elements exist, so the same file is safe on all three pages.
    Link it at the bottom of each page: <script src="script.js"></script>
    (If you use this file, delete the matching inline <script> blocks so nothing runs twice.) */
